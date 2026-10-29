@@ -1,0 +1,7 @@
+<div class="cover{% if size %} cover--{{ size }}{% endif %}" style="--c: {{ book.cover_color }}; --a: {{ book.accent_color }};" aria-hidden="true">
+  <div class="cover__band"></div>
+  <div class="cover__body">
+    <span class="cover__title">{{ book.title }}</span>
+    <span class="cover__author">{{ book.author }}</span>
+  </div>
+</div>

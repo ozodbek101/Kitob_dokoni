@@ -1,0 +1,27 @@
+{% load shop_tags %}
+<article class="book-card">
+  <a class="book-card__cover" href="{{ book.get_absolute_url }}" tabindex="-1" aria-hidden="true">
+    {% if not book.in_stock %}<span class="badge badge--out">Tugagan</span>
+    {% elif book.discount_percent %}<span class="badge">−{{ book.discount_percent }}%</span>{% endif %}
+    {% include "shop/_cover.html" %}
+  </a>
+  <a class="book-card__title" href="{{ book.get_absolute_url }}">{{ book.title }}</a>
+  <div class="book-card__author">{{ book.author }}</div>
+  <div class="book-card__foot">
+    <span class="price">{{ book.price|som }}{% if book.old_price %} <s>{{ book.old_price|som }}</s>{% endif %}</span>
+    {% if book.in_stock %}
+      <form method="post" action="{% url 'shop:cart_add' book.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="icon-btn{% if book in cart %} icon-btn--added{% endif %}" type="submit"
+                aria-label="«{{ book.title }}» kitobini savatga qo‘shish" title="Savatga qo‘shish">
+          {% if book in cart %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>
+          {% else %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          {% endif %}
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</article>
