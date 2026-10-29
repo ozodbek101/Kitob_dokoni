@@ -24,6 +24,7 @@
       </form>
       <nav class="nav" aria-label="Asosiy">
         <a class="nav__catalog" href="{% url 'shop:catalog' %}">Katalog</a>
+        <a class="nav__orders" href="{% url 'shop:my_orders' %}">Buyurtmalarim</a>
         <a class="cart-link" href="{% url 'shop:cart' %}">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 7h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9L5 7Z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
           Savat <span class="cart-link__count" aria-label="{{ cart|length }} ta kitob">{{ cart|length }}</span>
@@ -67,6 +68,7 @@
         <div>
           <h3>Xaridorlarga</h3>
           <ul>
+            <li><a href="{% url 'shop:my_orders' %}">Buyurtmani kuzatish</a></li>
             <li>Yetkazish: Toshkent bo‘ylab ertaga</li>
             <li>To‘lov: Uzcard, Humo, Visa</li>
           </ul>

@@ -1,0 +1,59 @@
+{% extends "shop/base.html" %}
+{% load shop_tags %}
+{% block title %}Buyurtma #{{ order.number }} — Sahifa{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="done-head">
+    <div class="done-head__mark" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 5 5 9-10"/></svg></div>
+    <h1>Buyurtma #{{ order.number }} qabul qilindi</h1>
+    <p class="muted">
+      {% if order.delivery_method == "pickup" %}Tayyor bo‘lganda {{ order.phone|phone }} raqamiga qo‘ng‘iroq qilamiz.
+      {% else %}Taxminiy yetkazish: {{ eta }}. Kuryer {{ order.phone|phone }} raqamiga oldindan qo‘ng‘iroq qiladi.{% endif %}
+    </p>
+  </div>
+
+  {% if order.status != "cancelled" %}
+    <ol class="timeline" aria-label="Buyurtma holati">
+      {% for s in steps %}<li class="{% if s.done %}is-done{% endif %}{% if s.current %} is-current{% endif %}"{% if s.current %} aria-current="step"{% endif %}>{{ s.label }}</li>{% endfor %}
+    </ol>
+  {% else %}
+    <p class="flash__item flash__item--error">Bu buyurtma bekor qilingan.</p>
+  {% endif %}
+
+  <div class="order-grid" style="margin-top:2rem">
+    <section class="form-card">
+      <h2>Yetkazish</h2>
+      <dl class="specs">
+        <dt>Qabul qiluvchi</dt><dd>{{ order.full_name }}</dd>
+        <dt>Telefon</dt><dd>{{ order.phone|phone }}</dd>
+        <dt>Usul</dt><dd>{{ order.get_delivery_method_display }}</dd>
+        {% if order.delivery_method != "pickup" %}
+          <dt>Manzil</dt><dd>{{ order.full_address }}</dd>
+          {% if order.landmark %}<dt>Mo‘ljal</dt><dd>{{ order.landmark }}</dd>{% endif %}
+        {% endif %}
+      </dl>
+    </section>
+    <section class="form-card">
+      <h2>To‘lov</h2>
+      <dl class="specs">
+        <dt>Usul</dt><dd>{{ order.get_payment_method_display }}</dd>
+        <dt>Holati</dt><dd>{% if order.is_paid %}<span style="color:var(--firuza)">To‘langan</span>{% else %}To‘lanmagan{% endif %}</dd>
+        {% if order.transaction_id %}<dt>Tranzaksiya</dt><dd>{{ order.transaction_id }}</dd>{% endif %}
+        <dt>Jami</dt><dd>{{ order.total|som }}</dd>
+      </dl>
+    </section>
+    <section class="form-card span-2">
+      <h2>Kitoblar</h2>
+      <ul class="mini-lines" style="max-height:none">
+        {% for item in order.items.all %}
+          <li>
+            {% include "shop/_cover.html" with book=item.book size="sm" %}
+            <span><strong>{{ item.book.title }}</strong><span class="muted">{{ item.quantity }} × {{ item.price|som }}</span></span>
+            <span>{{ item.line_total|som }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -117,9 +117,9 @@ class Order(models.Model):
 
     # Yashash manzili
     region = models.CharField("Viloyat", max_length=20, choices=Region.choices)
-    city = models.CharField("Shahar yoki tuman", max_length=100)
-    street = models.CharField("Ko‘cha va mahalla", max_length=200)
-    house = models.CharField("Uy", max_length=20)
+    city = models.CharField("Shahar yoki tuman", max_length=100, blank=True)
+    street = models.CharField("Ko‘cha va mahalla", max_length=200, blank=True)
+    house = models.CharField("Uy", max_length=20, blank=True)
     apartment = models.CharField("Xonadon", max_length=20, blank=True)
     landmark = models.CharField("Mo‘ljal", max_length=200, blank=True)
     note = models.TextField("Kuryer uchun izoh", blank=True)

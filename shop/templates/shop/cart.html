@@ -46,6 +46,7 @@
           <p class="note" style="color:var(--firuza);font-weight:700;margin:0">Toshkent bo‘ylab kuryer bepul.</p>
         {% endif %}
         <div class="summary__row summary__total"><span>To‘lov uchun</span><span>{{ cart.subtotal|som }}</span></div>
+        <a class="btn btn--primary btn--block" href="{% url 'shop:checkout' %}">Buyurtmani rasmiylashtirish</a>
         <a class="btn btn--ghost btn--block" href="{% url 'shop:catalog' %}">Xaridni davom ettirish</a>
       </aside>
     </div>

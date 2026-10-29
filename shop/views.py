@@ -1,12 +1,14 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db import transaction
+from django.db.models import Count, F, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import delivery
 from .cart import Cart
-from .models import Book, Category
+from .forms import CheckoutForm
+from .models import Book, Category, Order, OrderItem
 
 SORTS = {
     "new": ("-created", "Yangilari"),
@@ -119,3 +121,65 @@ def cart_detail(request):
         "left_for_free": max(0, delivery.FREE_COURIER_FROM - subtotal),
         "free_progress": min(100, round(subtotal * 100 / delivery.FREE_COURIER_FROM)) if subtotal else 0,
     })
+
+
+# ---------- Buyurtma ----------
+
+def checkout(request):
+    cart = Cart(request)
+    if not len(cart):
+        messages.info(request, "Savat bo‘sh. Avval kitob tanlang.")
+        return redirect("shop:catalog")
+
+    form = CheckoutForm(request.POST or None, initial={"region": Order.Region.TASHKENT_CITY})
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            # Ombordagi sonni qulflab tekshiramiz
+            books = {b.id: b for b in Book.objects.select_for_update().filter(id__in=[i["book"].id for i in cart])}
+            short = [i["book"].title for i in cart if books[i["book"].id].stock < i["quantity"]]
+            if short:
+                messages.error(request, "Omborda yetarli emas: " + ", ".join(short) + ". Savatni yangilang.")
+                return redirect("shop:cart")
+
+            order = form.save(commit=False)
+            order.subtotal = cart.subtotal
+            order.delivery_price = delivery.delivery_price(order.delivery_method, order.subtotal)
+            order.total = order.subtotal + order.delivery_price
+            order.save()
+            for item in cart:
+                OrderItem.objects.create(order=order, book=item["book"],
+                                         price=item["book"].price, quantity=item["quantity"])
+                Book.objects.filter(pk=item["book"].id).update(stock=F("stock") - item["quantity"])
+        cart.clear()
+        request.session.setdefault("my_orders", []).append(str(order.code))
+        request.session.modified = True
+
+        messages.success(request, "Buyurtma qabul qilindi.")
+        return redirect(order)
+
+    return render(request, "shop/checkout.html", {
+        "form": form,
+        "delivery_options": delivery.OPTIONS,
+        "delivery_prices": {k: delivery.delivery_price(k, cart.subtotal) for k in delivery.OPTIONS},
+    })
+
+
+def order_detail(request, code):
+    order = get_object_or_404(Order.objects.prefetch_related("items__book"), code=code)
+    flow = [Order.Status.NEW, Order.Status.PAID, Order.Status.PACKING,
+            Order.Status.SHIPPED, Order.Status.DELIVERED]
+    if order.payment_method == Order.Payment.CASH:
+        flow.remove(Order.Status.PAID)
+    current = flow.index(order.status) if order.status in flow else -1
+    steps = [{"label": s.label, "done": i <= current, "current": i == current} for i, s in enumerate(flow)]
+    return render(request, "shop/order_detail.html", {
+        "order": order,
+        "steps": steps,
+        "eta": delivery.OPTIONS[order.delivery_method]["eta"],
+    })
+
+
+def my_orders(request):
+    codes = request.session.get("my_orders", [])
+    orders = Order.objects.filter(code__in=codes).prefetch_related("items")
+    return render(request, "shop/my_orders.html", {"orders": orders})

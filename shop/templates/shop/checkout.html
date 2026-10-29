@@ -1,0 +1,99 @@
+{% extends "shop/base.html" %}
+{% load shop_tags %}
+{% block title %}Buyurtmani rasmiylashtirish — Sahifa{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head"><h1>Buyurtmani rasmiylashtirish</h1></div>
+  {% include "shop/_stepper.html" with step=2 %}
+
+  <form method="post" class="cart" novalidate data-checkout
+        data-subtotal="{{ cart.subtotal }}"
+        data-prices='{"courier": {{ delivery_prices.courier }}, "post": {{ delivery_prices.post }}, "pickup": {{ delivery_prices.pickup }}}'>
+    {% csrf_token %}
+    <div>
+      {% if form.non_field_errors %}<div class="flash__item flash__item--error" style="margin-bottom:1rem">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+
+      <section class="form-card">
+        <h2>Aloqa</h2>
+        <div class="fields">
+          {% include "shop/_field.html" with f=form.full_name %}
+          {% include "shop/_field.html" with f=form.phone cls="field--3" %}
+          {% include "shop/_field.html" with f=form.email cls="field--3" %}
+        </div>
+      </section>
+
+      <section class="form-card">
+        <h2>Yetkazish usuli</h2>
+        <div class="options">
+          {% for radio in form.delivery_method %}
+            {% with opt=delivery_options|get_item:radio.data.value %}
+            <div class="option" data-delivery="{{ radio.data.value }}">
+              {{ radio.tag }}
+              <label for="{{ radio.id_for_label }}">
+                <span class="option__name">{{ radio.choice_label }}</span>
+                <span class="option__price">{% if delivery_prices|get_item:radio.data.value %}{{ delivery_prices|get_item:radio.data.value|som }}{% else %}Bepul{% endif %}</span>
+                <span class="option__meta">{{ opt.eta }}. {{ opt.note }}</span>
+              </label>
+            </div>
+            {% endwith %}
+          {% endfor %}
+        </div>
+        {{ form.delivery_method.errors }}
+      </section>
+
+      <section class="form-card" data-address>
+        <h2>Yashash manzili</h2>
+        <p class="note" data-pickup-note hidden>Do‘kondan olib ketsangiz, manzil shart emas. Buyurtma tayyor bo‘lganda qo‘ng‘iroq qilamiz.</p>
+        <div class="fields">
+          {% include "shop/_field.html" with f=form.region cls="field--3" %}
+          {% include "shop/_field.html" with f=form.city cls="field--3" %}
+          {% include "shop/_field.html" with f=form.street %}
+          {% include "shop/_field.html" with f=form.house cls="field--2 field--half" %}
+          {% include "shop/_field.html" with f=form.apartment cls="field--2 field--half" %}
+          {% include "shop/_field.html" with f=form.landmark cls="field--2" %}
+          {% include "shop/_field.html" with f=form.note %}
+        </div>
+      </section>
+
+      <section class="form-card">
+        <h2>To‘lov usuli</h2>
+        <div class="options">
+          {% for radio in form.payment_method %}
+            <div class="option">
+              {{ radio.tag }}
+              <label for="{{ radio.id_for_label }}">
+                <span class="option__name">{{ radio.choice_label }}</span>
+                {% if radio.data.value == "card" %}
+                  <span class="pay-logos" aria-hidden="true"><span>UZCARD</span><span>HUMO</span><span>VISA</span></span>
+                  <span class="option__meta">Keyingi qadamda karta ma’lumotlarini kiritasiz</span>
+                {% else %}
+                  <span></span>
+                  <span class="option__meta">Kuryerga yoki do‘konda to‘laysiz</span>
+                {% endif %}
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <aside class="summary" aria-label="Buyurtma xulosasi">
+      <h2>Buyurtmangiz</h2>
+      <ul class="mini-lines">
+        {% for item in cart %}
+          <li>
+            {% include "shop/_cover.html" with book=item.book size="sm" %}
+            <span><strong>{{ item.book.title }}</strong><span class="muted">{{ item.quantity }} dona</span></span>
+            <span>{{ item.total|som }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="summary__row" style="border-top:1px solid var(--line);padding-top:.9rem"><span>Kitoblar</span><span>{{ cart.subtotal|som }}</span></div>
+      <div class="summary__row"><span>Yetkazish</span><span data-delivery-price>{{ delivery_prices.courier|som }}</span></div>
+      <div class="summary__row summary__total"><span>Jami</span><span data-total>{{ cart.subtotal|add:delivery_prices.courier|som }}</span></div>
+      <button class="btn btn--primary btn--block" type="submit" data-submit-label>Buyurtma berish</button>
+      <p class="note" style="margin:0">Tugmani bosish orqali siz buyurtma shartlariga rozilik bildirasiz.</p>
+    </aside>
+  </form>
+</div>
+{% endblock %}

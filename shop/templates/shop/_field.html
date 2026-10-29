@@ -1,0 +1,5 @@
+<div class="field{% if cls %} {{ cls }}{% endif %}{% if f.errors %} field--error{% endif %}">
+  <label for="{{ f.id_for_label }}">{{ f.label }}{% if not f.field.required and f.name not in f.form.delivery_required %} <span class="opt">(ixtiyoriy)</span>{% endif %}</label>
+  {{ f }}
+  {{ f.errors }}
+</div>

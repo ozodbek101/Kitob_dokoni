@@ -1,0 +1,27 @@
+{% extends "shop/base.html" %}
+{% load shop_tags %}
+{% block title %}Buyurtmalarim — Sahifa{% endblock %}
+{% block content %}
+<div class="wrap" style="padding-bottom:4rem">
+  <div class="page-head"><h1>Buyurtmalarim</h1><p>Shu brauzerdan berilgan buyurtmalar.</p></div>
+  {% if orders %}
+    <ul class="cart-lines">
+      {% for order in orders %}
+        <li class="cart-line" style="grid-template-columns:1fr auto">
+          <div>
+            <a class="cart-line__title" href="{{ order.get_absolute_url }}">Buyurtma #{{ order.number }}</a>
+            <div class="cart-line__meta">{{ order.created|date:"d.m.Y, H:i" }}, {{ order.items.all|length }} xil kitob</div>
+          </div>
+          <div class="cart-line__right"><strong>{{ order.total|som }}</strong><span class="note">{{ order.get_status_display }}</span></div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty">
+      <h2>Hali buyurtma bermagansiz</h2>
+      <p class="muted">Buyurtma berganingizdan keyin uning holatini shu yerda kuzatasiz.</p>
+      <a class="btn btn--primary" href="{% url 'shop:catalog' %}">Kitob tanlash</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

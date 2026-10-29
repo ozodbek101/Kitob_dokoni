@@ -1,0 +1,6 @@
+<ol class="stepper" aria-label="Buyurtma bosqichlari">
+  <li class="is-done">Savat</li>
+  <li class="{% if step == 2 %}is-current{% else %}is-done{% endif %}"{% if step == 2 %} aria-current="step"{% endif %}>Manzil va yetkazish</li>
+  <li class="{% if step == 3 %}is-current{% elif step > 3 %}is-done{% endif %}"{% if step == 3 %} aria-current="step"{% endif %}>To‘lov</li>
+  <li class="{% if step == 4 %}is-current{% endif %}"{% if step == 4 %} aria-current="step"{% endif %}>Tayyor</li>
+</ol>
