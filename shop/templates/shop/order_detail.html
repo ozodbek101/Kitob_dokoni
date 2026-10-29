@@ -41,6 +41,9 @@
         {% if order.transaction_id %}<dt>Tranzaksiya</dt><dd>{{ order.transaction_id }}</dd>{% endif %}
         <dt>Jami</dt><dd>{{ order.total|som }}</dd>
       </dl>
+      {% if not order.is_paid and order.payment_method == "card" %}
+        <a class="btn btn--primary" href="{{ pay_url }}" style="margin-top:1rem">To‘lovni yakunlash</a>
+      {% endif %}
     </section>
     <section class="form-card span-2">
       <h2>Kitoblar</h2>

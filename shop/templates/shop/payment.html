@@ -1,0 +1,45 @@
+{% extends "shop/base.html" %}
+{% load shop_tags %}
+{% block title %}To‘lov — Sahifa{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head"><h1>Karta orqali to‘lov</h1></div>
+  {% include "shop/_stepper.html" with step=3 %}
+  <div class="pay">
+    <section class="form-card">
+      <div class="card-preview" aria-hidden="true">
+        <div class="card-preview__chip"></div>
+        <div class="card-preview__num" data-card-num>•••• •••• •••• ••••</div>
+        <div class="card-preview__row"><span>{{ order.full_name }}</span><span data-card-exp>OO/YY</span></div>
+      </div>
+
+      <div class="demo-note">
+        Bu demo to‘lov: haqiqiy pul yechilmaydi. Sinov uchun <code>4242 4242 4242 4242</code> kartasini ishlating,
+        <code>4000 0000 0000 0002</code> esa rad etilgan to‘lovni ko‘rsatadi.
+      </div>
+
+      <form method="post" novalidate data-card-form>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="flash__item flash__item--error" style="margin-bottom:1rem">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+        <div class="fields">
+          {% include "shop/_field.html" with f=form.number %}
+          {% include "shop/_field.html" with f=form.expiry cls="field--3" %}
+        </div>
+        <button class="btn btn--primary btn--block" type="submit" style="margin-top:1.5rem">{{ order.total|som }} to‘lash</button>
+      </form>
+      <p class="secure">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex:none;margin-top:2px"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        Karta ma’lumotlari saytda saqlanmaydi. Haqiqiy ishga tushirishda to‘lov Payme yoki Click sahifasi orqali o‘tadi.
+      </p>
+    </section>
+
+    <aside class="summary">
+      <h2>Buyurtma #{{ order.number }}</h2>
+      <div class="summary__row"><span>Kitoblar</span><span>{{ order.subtotal|som }}</span></div>
+      <div class="summary__row"><span>Yetkazish</span><span>{% if order.delivery_price %}{{ order.delivery_price|som }}{% else %}Bepul{% endif %}</span></div>
+      <div class="summary__row summary__total"><span>Jami</span><span>{{ order.total|som }}</span></div>
+      <p class="note" style="margin:0">{{ order.get_delivery_method_display }}{% if order.delivery_method != "pickup" %}: {{ order.full_address }}{% endif %}</p>
+    </aside>
+  </div>
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
 import re
+from datetime import date
 
 from django import forms
 
@@ -56,3 +57,33 @@ class CheckoutForm(forms.ModelForm):
                            "Kuryer faqat Toshkent shahri va viloyatiga boradi. Viloyatlar uchun pochtani tanlang.")
         return data
 
+
+def luhn_ok(number):
+    digits = [int(d) for d in number][::-1]
+    total = sum(digits[0::2]) + sum(sum(divmod(d * 2, 10)) for d in digits[1::2])
+    return total % 10 == 0
+
+
+class CardPaymentForm(forms.Form):
+    """Demo to‘lov shakli. Karta ma’lumotlari hech qayerda saqlanmaydi."""
+
+    number = forms.CharField(label="Karta raqami", max_length=23, widget=forms.TextInput(attrs={
+        "inputmode": "numeric", "autocomplete": "cc-number", "placeholder": "8600 1234 5678 9012"}))
+    expiry = forms.CharField(label="Amal qilish muddati", max_length=5, widget=forms.TextInput(attrs={
+        "inputmode": "numeric", "autocomplete": "cc-exp", "placeholder": "OO/YY"}))
+
+    def clean_number(self):
+        number = re.sub(r"\D", "", self.cleaned_data["number"])
+        if len(number) != 16 or not luhn_ok(number):
+            raise forms.ValidationError("Karta raqami noto‘g‘ri. 16 ta raqamni tekshirib qayta kiriting.")
+        return number
+
+    def clean_expiry(self):
+        m = re.match(r"^(\d{2})\s*/?\s*(\d{2})$", self.cleaned_data["expiry"])
+        if not m or not 1 <= int(m.group(1)) <= 12:
+            raise forms.ValidationError("Muddatni OO/YY ko‘rinishida kiriting, masalan 08/28.")
+        month, year = int(m.group(1)), 2000 + int(m.group(2))
+        today = date.today()
+        if (year, month) < (today.year, today.month):
+            raise forms.ValidationError("Bu kartaning muddati tugagan.")
+        return f"{month:02d}/{year % 100:02d}"

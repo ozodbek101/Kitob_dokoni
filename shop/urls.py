@@ -14,5 +14,6 @@ urlpatterns = [
     path("savat/olib-tashlash/<int:book_id>/", views.cart_remove, name="cart_remove"),
     path("buyurtma/", views.checkout, name="checkout"),
     path("buyurtma/<uuid:code>/", views.order_detail, name="order_detail"),
+    path("buyurtma/<uuid:code>/tolov/", views.payment, name="payment"),
     path("buyurtmalarim/", views.my_orders, name="my_orders"),
 ]

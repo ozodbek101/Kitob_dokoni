@@ -3,12 +3,14 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, F, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from . import delivery
 from .cart import Cart
-from .forms import CheckoutForm
+from .forms import CardPaymentForm, CheckoutForm
 from .models import Book, Category, Order, OrderItem
+from .payments import get_gateway, mark_paid
 
 SORTS = {
     "new": ("-created", "Yangilari"),
@@ -154,7 +156,9 @@ def checkout(request):
         request.session.setdefault("my_orders", []).append(str(order.code))
         request.session.modified = True
 
-        messages.success(request, "Buyurtma qabul qilindi.")
+        if order.payment_method == Order.Payment.CARD:
+            return redirect("shop:payment", code=order.code)
+        messages.success(request, "Buyurtma qabul qilindi. To‘lov kitobni olganda qilinadi.")
         return redirect(order)
 
     return render(request, "shop/checkout.html", {
@@ -162,6 +166,21 @@ def checkout(request):
         "delivery_options": delivery.OPTIONS,
         "delivery_prices": {k: delivery.delivery_price(k, cart.subtotal) for k in delivery.OPTIONS},
     })
+
+
+def payment(request, code):
+    order = get_object_or_404(Order, code=code)
+    if order.is_paid:
+        return redirect(order)
+    form = CardPaymentForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        result = get_gateway().charge(order, form.cleaned_data["number"], form.cleaned_data["expiry"])
+        if result.ok:
+            mark_paid(order, result.transaction_id)
+            messages.success(request, "To‘lov qabul qilindi. Rahmat!")
+            return redirect(order)
+        form.add_error(None, result.error)
+    return render(request, "shop/payment.html", {"order": order, "form": form})
 
 
 def order_detail(request, code):
@@ -176,6 +195,7 @@ def order_detail(request, code):
         "order": order,
         "steps": steps,
         "eta": delivery.OPTIONS[order.delivery_method]["eta"],
+        "pay_url": reverse("shop:payment", args=[order.code]),
     })
 
 
