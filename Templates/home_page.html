@@ -1,0 +1,9 @@
+<h1> Bosh sahifa</h1>
+
+{% for post in posts %}
+   <p> {{ forloop.counter }}. {{ post.title }} </p>
+
+{% empty %}
+<p> Fanlar hali kiritilmadi </p>
+
+{% endfor %}
