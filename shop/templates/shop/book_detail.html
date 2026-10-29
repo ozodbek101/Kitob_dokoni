@@ -1,0 +1,67 @@
+{% extends "shop/base.html" %}
+{% load shop_tags %}
+{% block title %}{{ book.title }} — {{ book.author }} | Sahifa{% endblock %}
+{% block description %}{{ book.description|truncatechars:150 }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <nav class="crumbs" aria-label="Yo‘l">
+    <a href="{% url 'shop:catalog' %}">Katalog</a> /
+    <a href="{% url 'shop:catalog' %}?category={{ book.category.slug }}">{{ book.category.name }}</a>
+  </nav>
+
+  <div class="book">
+    <div>{% include "shop/_cover.html" with size="lg" %}</div>
+    <div>
+      <h1 class="book__title">{{ book.title }}</h1>
+      <p class="book__author">{{ book.author }}</p>
+      <span class="rating">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2.8 2.8 5.7 6.3.9-4.6 4.4 1.1 6.2L12 17l-5.6 3 1.1-6.2L2.9 9.4l6.3-.9L12 2.8Z"/></svg>
+        {{ book.rating }} <span class="muted" style="font-weight:500">/ 5</span>
+      </span>
+
+      <div class="buy">
+        <div class="buy__price">{{ book.price|som }}{% if book.old_price %}<s>{{ book.old_price|som }}</s>{% endif %}</div>
+        {% if book.in_stock %}
+          <span class="stock{% if book.stock < 5 %} stock--low{% endif %}">
+            {% if book.stock < 5 %}Omborda {{ book.stock }} dona qoldi{% else %}Omborda bor{% endif %}
+          </span>
+          <form method="post" action="{% url 'shop:cart_add' book.id %}" class="buy__row">
+            {% csrf_token %}
+            <div class="qty" data-qty>
+              <button type="button" data-step="-1" aria-label="Kamaytirish">−</button>
+              <input type="number" name="quantity" value="1" min="1" max="{{ book.stock }}" aria-label="Soni">
+              <button type="button" data-step="1" aria-label="Ko‘paytirish">+</button>
+            </div>
+            <button class="btn btn--primary" type="submit" style="flex:1">Savatga qo‘shish</button>
+          </form>
+        {% else %}
+          <span class="stock stock--out">Hozir omborda yo‘q</span>
+          <a class="btn btn--ghost" href="{% url 'shop:catalog' %}?category={{ book.category.slug }}">Shu bo‘limdagi boshqa kitoblar</a>
+        {% endif %}
+        <ul class="delivery-list">
+          <li><span>Kuryer, Toshkent</span><strong>{{ delivery_options.courier.price|som }}</strong><small>{{ delivery_options.courier.eta }}. {{ free_from|som }}dan ortiq buyurtmada bepul</small></li>
+          <li><span>Pochta, viloyatlarga</span><strong>{{ delivery_options.post.price|som }}</strong><small>{{ delivery_options.post.eta }}</small></li>
+          <li><span>Do‘kondan olib ketish</span><strong>Bepul</strong><small>{{ delivery_options.pickup.note }}</small></li>
+        </ul>
+      </div>
+
+      {% if book.description %}<div class="prose"><p>{{ book.description|linebreaksbr }}</p></div>{% endif %}
+
+      <dl class="specs">
+        <dt>Bo‘lim</dt><dd>{{ book.category.name }}</dd>
+        {% if book.year %}<dt>Yozilgan yili</dt><dd>{{ book.year }}</dd>{% endif %}
+        <dt>Sahifalar</dt><dd>{{ book.pages }}</dd>
+        <dt>Til</dt><dd>{{ book.get_language_display }}</dd>
+        <dt>Muqova</dt><dd>{{ book.get_cover_type_display }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  {% if related %}
+    <section class="section" style="padding-top:1rem">
+      <div class="section__head"><h2>Shu bo‘limdan yana</h2></div>
+      <div class="grid">{% for book in related %}{% include "shop/_book_card.html" %}{% endfor %}</div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "shop/base.html" %}
+{% load shop_tags %}
+{% block title %}Savat — Sahifa{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="page-head"><h1>Savat</h1></div>
+  {% if cart.items %}
+    <div class="cart">
+      <ul class="cart-lines">
+        {% for item in cart %}
+          {% with book=item.book %}
+          <li class="cart-line">
+            <a href="{{ book.get_absolute_url }}" tabindex="-1" aria-hidden="true">{% include "shop/_cover.html" with size="sm" %}</a>
+            <div>
+              <a class="cart-line__title" href="{{ book.get_absolute_url }}">{{ book.title }}</a>
+              <div class="cart-line__meta">{{ book.author }}<br>Donasi {{ book.price|som }}</div>
+              <form method="post" action="{% url 'shop:cart_remove' book.id %}">{% csrf_token %}<button class="link-btn" type="submit">Olib tashlash</button></form>
+            </div>
+            <div class="cart-line__right">
+              <form method="post" action="{% url 'shop:cart_update' book.id %}" data-autosubmit>
+                {% csrf_token %}
+                <div class="qty" data-qty>
+                  <button type="button" data-step="-1" aria-label="Kamaytirish">−</button>
+                  <input type="number" name="quantity" value="{{ item.quantity }}" min="0" max="{{ book.stock }}" aria-label="{{ book.title }} soni">
+                  <button type="button" data-step="1" aria-label="Ko‘paytirish">+</button>
+                </div>
+                <noscript><button class="btn btn--ghost btn--sm">Yangilash</button></noscript>
+              </form>
+              <strong>{{ item.total|som }}</strong>
+            </div>
+          </li>
+          {% endwith %}
+        {% endfor %}
+      </ul>
+
+      <aside class="summary" aria-label="Buyurtma xulosasi">
+        <h2>Jami</h2>
+        <div class="summary__row"><span>Kitoblar ({{ cart|length }} dona)</span><strong>{{ cart.subtotal|som }}</strong></div>
+        <div class="summary__row"><span>Yetkazish</span><span class="muted">keyingi qadamda</span></div>
+        {% if left_for_free %}
+          <div>
+            <div class="progress" aria-hidden="true"><span style="width: {{ free_progress }}%"></span></div>
+            <p class="note" style="margin:.5rem 0 0">Bepul kuryerga yana {{ left_for_free|som }} qoldi.</p>
+          </div>
+        {% else %}
+          <p class="note" style="color:var(--firuza);font-weight:700;margin:0">Toshkent bo‘ylab kuryer bepul.</p>
+        {% endif %}
+        <div class="summary__row summary__total"><span>To‘lov uchun</span><span>{{ cart.subtotal|som }}</span></div>
+        <a class="btn btn--ghost btn--block" href="{% url 'shop:catalog' %}">Xaridni davom ettirish</a>
+      </aside>
+    </div>
+  {% else %}
+    <div class="empty" style="margin-bottom:4rem">
+      <h2>Savatingiz hozircha bo‘sh</h2>
+      <p class="muted">Katalogdan kitob tanlang — u shu yerda paydo bo‘ladi.</p>
+      <a class="btn btn--primary" href="{% url 'shop:catalog' %}">Katalogga o‘tish</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

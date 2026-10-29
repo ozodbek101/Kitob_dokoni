@@ -208,7 +208,7 @@ class Command(BaseCommand):
 
         created = 0
         for i, (cat, title, author, year, pages, lang, price, desc) in enumerate(BOOKS):
-            base, accent = PALETTES[i % len(PALETTES)]
+            base, accent = PALETTES[(i * 7 + i // len(PALETTES)) % len(PALETTES)]
             slug = slugify(f"{title}-{author}".replace("‘", "").replace("’", ""), allow_unicode=False)
             old_price = round(price * rng.choice([1.15, 1.2, 1.25]), -3) if i % 5 == 0 else None
             _, was_created = Book.objects.update_or_create(
@@ -225,6 +225,7 @@ class Command(BaseCommand):
             )
             created += was_created
 
-        self.stdout.write(self.style.SUCCESS(
-            f"{len(CATEGORIES)} ta kategoriya, {len(BOOKS)} ta kitob tayyor ({created} tasi yangi)."
-        ))
+        if opts["verbosity"]:
+            self.stdout.write(self.style.SUCCESS(
+                f"{len(CATEGORIES)} ta kategoriya, {len(BOOKS)} ta kitob tayyor ({created} tasi yangi)."
+            ))

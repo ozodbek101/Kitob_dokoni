@@ -1,0 +1,77 @@
+{% extends "shop/base.html" %}
+{% load shop_tags %}
+{% block content %}
+<section class="hero">
+  <div class="wrap">
+    <div class="hero__text">
+      <h1>Keyingi kitobingiz shu javonda turibdi</h1>
+      <p class="hero__lead">{{ book_total }} ta kitob — Qodiriydan Markesgacha. Bugun buyurtma bering, Toshkent bo‘ylab ertaga yetkazamiz.</p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="{% url 'shop:catalog' %}">Katalogni ochish</a>
+        <a class="btn btn--ghost" href="{% url 'shop:catalog' %}?sort=rating">Eng sevimlilar</a>
+      </div>
+    </div>
+  </div>
+  <div class="shelf" aria-label="Javondagi kitoblar">
+    <div class="shelf__row">
+      {% for book in shelf %}
+        <a class="spine{% if forloop.counter == 9 %} spine--tilt{% endif %}" href="{{ book.get_absolute_url }}"
+           style="--c: {{ book.cover_color }}; --a: {{ book.accent_color }}; height: {% cycle '88%' '96%' '80%' '100%' '91%' '84%' '94%' %}; width: {% cycle '46px' '58px' '40px' '52px' '64px' '44px' %};"
+           title="{{ book.title }} — {{ book.author }}">
+          <span class="spine__title">{{ book.title }}</span>
+        </a>
+      {% endfor %}
+    </div>
+    <div class="shelf__plank"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section__head"><h2>Bo‘limlar</h2></div>
+    <div class="cat-list">
+      {% for c in categories %}
+        <a href="{% url 'shop:catalog' %}?category={{ c.slug }}">
+          <strong>{{ c.name }}</strong>
+          <span>{{ c.n }} ta kitob</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 0">
+  <div class="wrap">
+    <div class="section__head">
+      <h2>Biz tavsiya qilamiz</h2>
+      <a href="{% url 'shop:catalog' %}?sort=rating">Hammasi</a>
+    </div>
+    <div class="grid">
+      {% for book in featured %}{% include "shop/_book_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section band">
+  <div class="wrap">
+    <div class="section__head"><h2>Buyurtma qanday yetib keladi</h2></div>
+    <ol class="steps">
+      <li><h3>Kitob tanlang</h3><p>Savatga qo‘shing va yashash manzilingizni kiriting.</p></li>
+      <li><h3>Onlayn to‘lang</h3><p>Uzcard, Humo yoki Visa karta bilan. Xohlasangiz, kitobni olganda naqd to‘laysiz.</p></li>
+      <li><h3>Eshigingizgacha</h3><p>Toshkentga kuryer ertaga olib boradi, viloyatlarga pochta 2–4 kunda. {{ free_from|som }}dan ortiq buyurtmada kuryer bepul.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section__head">
+      <h2>Yangi nashrlar</h2>
+      <a href="{% url 'shop:catalog' %}?sort=new">Hammasi</a>
+    </div>
+    <div class="grid">
+      {% for book in fresh %}{% include "shop/_book_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
